@@ -82,7 +82,7 @@ send_message() {
 	fi
 	request $(curl -XPUT -H "Authorization: Bearer ${MATRIX_TOKEN}" -H "Content-Type: application/json" --data "$data" \
 		"https://${MATRIX_HOMESERVER#https://}/_matrix/client/r0/rooms/$MATRIX_ROOM_ID/send/m.room.message/$id")
-	echo "\033[1;32m[v] Message sent\033[0m"
+	echo -e "\033[1;32m[v] Message sent\033[0m"
 }
 
 # Show the help menu
