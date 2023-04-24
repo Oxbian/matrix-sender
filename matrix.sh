@@ -1,7 +1,7 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Script to send message to matrix
 
-set -x
+#set -x
 
 # Matrix homeserver URL
 MATRIX_HOMESERVER=''
@@ -31,7 +31,7 @@ check_token() {
 
 # Display an error and leave
 error() {
-	echo $@
+	echo -e "\033[0;31m$@\033[0m"
 	exit 1
 }
 
@@ -61,7 +61,8 @@ get_token() {
 	request $token
 	
 	token=$(echo "$token" | jq -r '.access_token')
-	sed -i -e "s#^MATRIX_TOKEN=.*#MATRIX_TOKEN=\'${token}\'#g" $0	
+	sed -i -e "s#^MATRIX_TOKEN=.*#MATRIX_TOKEN=\'${token}\'#g" $0
+	echo -e "\033[1;32m[V] Token succesfully added\033[0m"
 }
 
 # Send a message
@@ -81,7 +82,7 @@ send_message() {
 	fi
 	request $(curl -XPUT -H "Authorization: Bearer ${MATRIX_TOKEN}" -H "Content-Type: application/json" --data "$data" \
 		"https://${MATRIX_HOMESERVER#https://}/_matrix/client/r0/rooms/$MATRIX_ROOM_ID/send/m.room.message/$id")
-	echo "[v] Message sent"
+	echo "\033[1;32m[v] Message sent\033[0m"
 }
 
 # Show the help menu
