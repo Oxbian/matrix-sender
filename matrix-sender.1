@@ -1,0 +1,47 @@
+.\" Manpage for matrix-sender.
+.\" Contact oxbian.noch@simplelogin.com  to correct errors or typos.
+.TH man 8 "08 October 2023" "1.0" "matrix-sender man page"
+
+.SH NAME
+.B matrix-sender 
+- send an unencrypted message to a matrix room
+
+.SH SYNOPSIS
+.B matrix-sender [OPTIONS]
+
+.SH DESCRIPTION
+Matrix sender is a POSIX shell script for sending unencrypted message to a Matrix room. It supports HTML formatting, usefull for log on servers
+There will be no update for supporting encrypted message, the simplicity of this script will be degraded by that, if you really need check
+.B nio-send 
+
+.SH OPTIONS
+.IP "-h|--help"
+Prints help
+
+.IP "-t <username> <password>"
+Get token account token, needed for sending messages
+
+.IP "-s <message>"
+Send a message to a matrix room
+
+.IP "-html <html formatted message>"
+Send a HTML formatted message to a matrix room
+
+.SH EXAMPLES
+.IP "matrix-sender -s 'Hello World!'
+Send "Hello world!" to a matrix room
+
+.IP "matrix-sender -html '<h1>Hello World!</h1>'"
+Send a bold "Hello World!" to a matrix room
+
+.SH EXIT STATUS
+.TP
+.B 0
+Success
+
+.TP
+.B 1
+Error
+
+.SH AUTHOR
+Oxbian (oxbian.noch@simplelogin.com)

@@ -1,0 +1,128 @@
+#!/bin/sh
+# Script to send message to a matrix server
+
+#set -x
+
+# Matrix homeserver URL
+MATRIX_HOMESERVER=''
+
+# MATRIX room ID
+MATRIX_ROOM_ID=''
+
+# MATRIX token
+MATRIX_TOKEN=''
+
+# Check if variable are set
+check_var() {
+	[ -z "$MATRIX_HOMESERVER" ] && error "MATRIX_HOMESERVER variable not set"
+	[ -z "$MATRIX_ROOM_ID" ] && error "MATRIX_ROOM_ID variable not set"
+}
+
+# Check if token is set
+check_token() {
+	[ -z "$MATRIX_TOKEN" ] && error "MATRIX_TOKEN variable empty, use $0 -t <username> <password>"
+}
+
+# Display an error and leave
+error() {
+	printf "\033[0;31m%s\033[0m\n" "$1"
+	exit 1
+}
+
+# Clean an input
+clean() {
+	input="$1"
+	printf '%s' "$input" | jq -Rs '.'
+}
+
+# Make a request, $1 the CURL request
+request() {
+	request=$1
+	errorcode="$(printf "%s" "$request" | jq -r '.errcode')"
+
+	[ -n "$errorcode" ] && [ "$errorcode" != "null" ] && error "[x] Erreur: \"$(printf "%s" "$request" | jq -r '.error' )\""
+}
+
+# Get the token of the account
+# usage: ./matrix.sh -t <username> <password>
+# get_token <username> <password>
+get_token() {
+	check_var
+	token=$(curl -XPOST -H "Content-Type: application/json" --data "{\"type\": \"m.login.password\", \"identifier\": {\"user\": \"$1\", \"type\": \"m.id.user\"}, \"password\": \"$2\"}" \
+		"https://${MATRIX_HOMESERVER#https://}/_matrix/client/r0/login")
+	request "$token"
+	
+	token=$(echo "$token" | jq -r '.access_token')
+	sed -i -e "s#^MATRIX_TOKEN=.*#MATRIX_TOKEN=\'${token}\'#g" "$0"
+	printf "\033[1;32m[V] Token succesfully added\033[0m\n"
+	exit 0
+}
+
+# Send a message
+# usage: ./matrix.sh -s <message>
+# usage: ./matrix.sh -html <message>
+# send_message <message>
+send_message() {
+	check_var
+	check_token
+	id=$(date +%s%N) # Message id
+	message=$(clean "$1")
+
+	if $HTML; then
+		data="{\"msgtype\": \"m.text\", \"body\": $message, \"format\": \"org.matrix.custom.html\", \"formatted_body\": $message}"
+	else
+		data="{\"body\": $message, \"msgtype\": \"m.text\"}" 
+	fi
+	request "$(curl -XPUT -H "Authorization: Bearer ${MATRIX_TOKEN}" -H "Content-Type: application/json" --data "$data" \
+		"https://${MATRIX_HOMESERVER#https://}/_matrix/client/r0/rooms/$MATRIX_ROOM_ID/send/m.room.message/$id")"
+	printf "\033[1;32m[v] Message sent\033[0m\n"
+	exit 0
+}
+
+# Show the help menu
+help() {
+	printf "Usage: %s <actions> <options>\n\n" "$0" 
+	printf "Actions:\n"
+	printf "  -h, --help show this menu\n"
+	printf "  -t <username> <password> get the token of the account and save it\n"
+	printf "  -s <message> send a message\n"
+	printf "  -html <html> send an html message\n"
+}
+
+# Main
+hash curl >/dev/null 2>&1 || error "Curl is required!"
+hash jq >/dev/null 2>&1 || error "jq is required!"
+
+action=""
+case $1 in
+-t)
+	get_token "$2" "$3"
+	exit 0
+	;;
+
+-s)
+	action="send"
+	shift
+	;;
+
+-html)
+	action="html"
+	shift
+	;;
+
+-h|--help|*)
+	help
+	exit 0
+	;;
+esac
+
+MESSAGE=$*
+case $action in
+send)
+	send_message "$MESSAGE"
+	;;
+html)
+	HTML="true"
+	send_message "$MESSAGE"
+	;;
+esac
