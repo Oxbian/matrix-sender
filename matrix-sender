@@ -59,9 +59,9 @@ get_token() {
 }
 
 # Send a message
-# usage: ./matrix.sh -s <message>
-# usage: ./matrix.sh -html <message>
-# send_message <message>
+# usage: ./matrix.sh -s {<room-id>} <message>
+# usage: ./matrix.sh -html {<room-id>} <message>
+# send_message {<room-id>} <message> 
 send_message() {
 	check_var
 	check_token
@@ -85,8 +85,8 @@ help() {
 	printf "Actions:\n"
 	printf "  -h, --help show this menu\n"
 	printf "  -t <username> <password> get the token of the account and save it\n"
-	printf "  -s <message> send a message\n"
-	printf "  -html <html> send an html message\n"
+	printf "  -s {<room-id>} <message> send a message, if room id is set, the message will be send to the selected room\n"
+	printf "  -html {<room-id>} <html> send an html message, if room id is set, the message will be send to the selected room\n"
 }
 
 # Main
@@ -116,7 +116,25 @@ case $1 in
 	;;
 esac
 
-MESSAGE=$*
+# Vérification du room-id et du message
+if [ $# -eq 2 ]; then
+    ROOM_ID="$1"
+    MESSAGE="$2"
+
+    # Validation du format du room-id
+    if ! echo "$ROOM_ID" | grep -Eq '^.?![A-Za-z0-9+/]+:[^:]+.?$'; then
+		error "Invalid room-id format."
+    fi
+
+	MATRIX_ROOM_ID=$ROOM_ID
+
+elif [ $# -eq 1 ]; then
+	MESSAGE="$1"
+
+else
+    error "Message not set, usage:\n$0 -s {<room-id>} <message>\n$0 -html {<room-id>} <html>"
+fi
+
 case $action in
 send)
 	send_message "$MESSAGE"
@@ -126,3 +144,4 @@ html)
 	send_message "$MESSAGE"
 	;;
 esac
+

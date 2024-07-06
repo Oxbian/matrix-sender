@@ -24,36 +24,36 @@ First you need to edit the script with your homeserver url & the roomID
 
 After this you need to get your token
 ```sh
-./matrix-sender -t <username> <password>
+matrix-sender -t <username> <password>
 ```
 
 Once all is setup, you can send messages:
 - Simple message
 ```sh
-./matrix-sender -s <message>
+matrix-sender -s {<room-id>} <message>
 ```
 
 - or an HTML formatted message
 ```sh
-./matrix-sender -html <message>
+matrix-sender -html {<room-id>} <message>
 ```
 
 For help you can use:
 ```sh
-./matrix-sender -h
+matrix-sender -h
 ```
 or
 ```sh
-./matrix-sender --help
+matrix-sender --help
 ```
 
 **Example**
 ```bash
-./matrix-sender -s 'Hello world!'
+matrix-sender -s 'Hello world!'
 ```
 
 ```bash
-./matrix-sender -html '<h1 class="test"> t e s t </h1>'
+matrix-sender -html '<h1 class="test"> t e s t </h1>'
 ```
 
 ## Contributing
